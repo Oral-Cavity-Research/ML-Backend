@@ -18,7 +18,7 @@ img_width = 224
 @app.route('/classify', methods=['POST'])
 def classify():
     fileName = request.json['filename']
-    supported_extensions = ['.jpg', '.jpeg', '.png']
+    supported_extensions = ['.jpg', '.jpeg', '.png', '']
     
     image_path = None
 
