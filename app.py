@@ -2,19 +2,36 @@ from flask import Flask, request, jsonify
 import tensorflow as tf
 import numpy as np
 from PIL import Image
-import io
+import os
+from flask_cors import CORS
+from dotenv import load_dotenv
+
 
 app = Flask(__name__)
+load_dotenv()
+CORS(app)
 
-model = tf.keras.models.load_model('Densenet201(Original Images).h5')
+model = tf.keras.models.load_model(os.getenv('H5_FILE_PATH'))
 img_height = 224
 img_width = 224
 
 @app.route('/classify', methods=['POST'])
 def classify():
-    image = request.files['image']
+    fileName = request.json['filename']
+    supported_extensions = ['.jpg', '.jpeg', '.png']
+    
+    image_path = None
 
-    img = Image.open(io.BytesIO(image.read()))
+    for ext in supported_extensions:
+        path = os.getenv('IMAGES_PATH') + fileName + ext
+        if os.path.isfile(path):
+            image_path = path
+            break
+    
+    if image_path is None:
+        return jsonify({'error':'Image not found'})
+    
+    img = Image.open(image_path)
 
     img = img.resize((img_height, img_width))
 
@@ -22,9 +39,8 @@ def classify():
     pred=model.predict(img_array)
     idx=np.argmax(pred)
 
-    response = jsonify({'result': str(idx)})
-    response.headers.add('Access-Control-Allow-Origin', '*')
-    return response
+    return jsonify({'result': str(idx)})
+
 
 
 if __name__ == '__main__':
