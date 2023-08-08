@@ -1,10 +1,9 @@
 from flask import Flask, request, jsonify
-import tensorflow as tf
-import numpy as np
-from PIL import Image
 import os
 from flask_cors import CORS
 from dotenv import load_dotenv
+import util
+import numpy as np
 
 
 app = Flask(__name__)
@@ -17,14 +16,13 @@ img_width = 224
 @app.route('/classify', methods=['POST'])
 def classify():
     try:
-        model = tf.keras.models.load_model(os.getenv('H5_FILE_PATH'))
         filename = request.json['filename']
         supported_extensions = ['.jpg', '.jpeg', '.png', '']
         
         image_path = None
-
+        
         for ext in supported_extensions:
-            path = os.getenv('IMAGES_PATH') + filename + ext
+            path = os.getenv('IMAGES_PATH') + "\\" + filename + ext
             if os.path.isfile(path):
                 image_path = path
                 break
@@ -32,17 +30,25 @@ def classify():
         if image_path is None:
             return jsonify({'error': 'Image not found'}), 404
         
-        img = Image.open(image_path)
-        img = img.resize((img_height, img_width))
-        img_array = np.reshape(img, (1, img_height, img_width, 3))
-        pred = model.predict(img_array)
-        idx = np.argmax(pred)
+        pred = util.nnPredict(image_path)
 
-        return jsonify({'result': str(idx)})
+
+        entry = util.findEntry(filename)
+        pred_meta = util.metaPredict(entry)
+
+        finalPred = util.calculate_total(pred, pred_meta)
+
+
+        return jsonify({
+            'result': {
+                'benign': str(finalPred[0]),
+                'healthy': str(finalPred[1]),
+                'opmd': str(finalPred[2])
+            }})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
 
 
 if __name__ == '__main__':
-    app.run(port=6000)
+    app.run(port=5000)
