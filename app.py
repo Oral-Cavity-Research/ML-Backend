@@ -13,6 +13,10 @@ CORS(app)
 img_height = 224
 img_width = 224
 
+@app.route('/hello')
+def hello():
+    return "Hello, World!"
+
 @app.route('/classify', methods=['POST'])
 def classify():
     try:
