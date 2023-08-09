@@ -16,14 +16,10 @@ def findEntry(imageName: str):
     csvPath = os.getenv('CSV_PATH')
     data_df = pd.read_csv(csvPath)
     entry = data_df.loc[data_df['Image ID']==imageName]
-    if entry.shape[0]==0:
-        return 0
-    elif entry.shape[0]>1:
-        return 0
-    else:
-        return entry
+    return entry
 
 def nullRemoval(entry:pd.DataFrame):
+
     new_entry =  {'Gender': 'Male', 'Smoking':'yes', 'Chewing Betel Quid ': 'yes', 'Alcohol': 'yes'}
     new_entry1 = {'Gender': 'pns', 'Smoking':'ex', 'Chewing Betel Quid ': 'ex', 'Alcohol': 'occational'}
     new_entry2 = {'Gender': 'Female', 'Smoking':'no', 'Chewing Betel Quid ': 'no', 'Alcohol': 'no'}
@@ -56,6 +52,12 @@ def dataCleaning(entry:pd.DataFrame):
                          'Other investigations/tests', 'Comments', 'location of the mouth'
 , 'Chief complaint', 'Histopathological disgnosis', 'Medication history', 'Duration of practising habits, if any',
 'Oral hygiene product used', 'visible lesion present/ not'], axis=1)
+    str_columns = ['Gender', 'Smoking', 'Chewing Betel Quid ', 'Alcohol',
+       'Clinical diagnosis ', 'Clinical presentation of the lesion',
+       'History of presenting complaint', 'Medical history',
+       'Image Category (OCA/ OPMD/ Benign/ Healthy)']
+    for i in str_columns:
+        entry[i] = entry[i].str.lower()
     entry['Smoking'] = entry['Smoking'].str.strip()
     entry['Chewing Betel Quid '] = entry['Chewing Betel Quid '].str.strip()
 
@@ -122,14 +124,13 @@ def metaPredict(entry):
 
 
     prediction = xgb_model.predict(values, output_margin=True)
-
     return prediction
 
 def calculate_total(imagePred, metaPred):
     meta_prob = np.exp(metaPred) / np.exp(metaPred).sum()
     oca, opmd, benign, healthy = meta_prob.tolist()[0]
     meta_prob_3 = np.array([benign, healthy, oca+opmd])
-    return meta_prob_3*0.4 + imagePred[0]*0.6
+    return [meta_prob_3*0.4 + imagePred[0]*0.6]
 
     
 

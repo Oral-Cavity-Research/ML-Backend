@@ -3,7 +3,6 @@ import os
 from flask_cors import CORS
 from dotenv import load_dotenv
 import util
-import numpy as np
 
 
 app = Flask(__name__)
@@ -26,7 +25,7 @@ def classify():
         image_path = None
         
         for ext in supported_extensions:
-            path = os.getenv('IMAGES_PATH') + "\\" + filename + ext
+            path = os.path.join(os.getenv('IMAGES_PATH'), filename+ext)
             if os.path.isfile(path):
                 image_path = path
                 break
@@ -38,11 +37,12 @@ def classify():
 
 
         entry = util.findEntry(filename)
-        if entry:            
-            pred_meta = util.metaPredict(entry)
-            finalPred = util.calculate_total(pred, pred_meta)
+        if isinstance(entry, int):
+            finalPred=pred[0]            
         else:
-            finalPred=pred[0]
+            pred_meta = util.metaPredict(entry)
+            finalPred = util.calculate_total(pred, pred_meta)[0]
+
 
 
         return jsonify({
@@ -57,4 +57,4 @@ def classify():
 
 
 if __name__ == '__main__':
-    app.run(port=6000)
+    app.run(port=5000)
