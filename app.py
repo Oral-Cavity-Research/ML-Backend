@@ -38,7 +38,7 @@ def classify():
             pred_meta = util.metaPredict(entry)
             finalPred = util.calculate_total(pred, pred_meta)
         else:
-            finalPred=pred
+            finalPred=pred[0]
 
 
         return jsonify({
