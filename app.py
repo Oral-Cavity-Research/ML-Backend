@@ -34,9 +34,11 @@ def classify():
 
 
         entry = util.findEntry(filename)
-        pred_meta = util.metaPredict(entry)
-
-        finalPred = util.calculate_total(pred, pred_meta)
+        if entry:            
+            pred_meta = util.metaPredict(entry)
+            finalPred = util.calculate_total(pred, pred_meta)
+        else:
+            finalPred=pred
 
 
         return jsonify({
